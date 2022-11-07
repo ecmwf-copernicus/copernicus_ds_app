@@ -1,0 +1,110 @@
+<?php
+
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\DataCommand;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\node\NodeInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\paragraphs\Entity\Paragraph;
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ */
+function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
+  &$element, &$form_state, $context
+) {
+
+  if ($element['#paragraph_type'] == 'embed_data_store_app') {
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#size'] = 80;
+    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#size'] = 80;
+    //$element['subform']['field_ds_app_slug']['widget'][0]['value']['#default_value'] = '';
+    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#ajax'] = [
+      'callback' => '_copernicus_ds_app_ajax',
+      'event' => 'change',
+      'method' => 'replace',
+      'wrapper' => 'my-wrapper',
+      'progress' => [
+        'type' => 'throbber',
+        'message' => new TranslatableMarkup('Updating configuration ...'),
+      ],
+    ];
+
+    $element['subform']['field_ds_config_json']['widget'][0]['value']['#rows'] = 10;
+  }
+}
+
+/**
+ *
+ */
+function _copernicus_ds_app_ajax(&$form, &$form_state) {
+
+  // TODO: move this in module settings
+  $data_store_base_url = 'https://cds.climate.copernicus.eu/workflows/c3s/';
+
+  $element = $form_state->getTriggeringElement();
+  $parent_elm = $element['#parents'][0];
+  $parent_delta = $element['#parents'][1];
+  $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+  $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
+  $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+  $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
+
+  $response = new AjaxResponse();
+  $response->addCommand(new InvokeCommand(
+    'input[name="' . $link_input_name . '"]',
+    'val',
+    [$link_input_value]
+  ));
+  $json_string = @file_get_contents($link_input_value);
+  $test_json = json_decode($json_string);
+  if (json_last_error() !== JSON_ERROR_NONE) {
+    $json_string = 'JSON Error';
+  }
+  $response->addCommand(new InvokeCommand(
+    'textarea[name="' . $json_input_name . '"]',
+    'text',
+    [$json_string]
+  ));
+
+  return $response;
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function copernicus_ds_app_node_presave(NodeInterface $node) {
+  if (!$node->get('field_content')->isEmpty()) {
+
+    $module_path = \Drupal::service('extension.list.module')
+      ->getPath('copernicus_ds_app');
+    $file_system = \Drupal::service('file_system');
+    $ds_app_dir = 'public://ds_app';
+    $file_system->prepareDirectory(
+      $ds_app_dir,
+      FileSystemInterface:: CREATE_DIRECTORY
+    );
+
+    foreach ($node->get('field_content')->getValue() as $content) {
+      if ($content['target_id']) {
+        $paragraph = Paragraph::load($content['target_id']);
+        if ($paragraph->hasField('field_ds_config_json')) {
+          $json_string = $paragraph->field_ds_config_json->value;
+          $paragraph_ds_app_dir = $ds_app_dir . '/' . $paragraph->uuid();
+          if (
+            $file_system->prepareDirectory(
+              $paragraph_ds_app_dir,
+              FileSystemInterface:: CREATE_DIRECTORY
+            )
+          ) {
+            /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
+            $fileRepository = \Drupal::service('file.repository');
+            $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
+          }
+        }
+      }
+    }
+  }
+}
