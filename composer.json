@@ -1,0 +1,22 @@
+{
+    "name": "drupal/copernicus_ds_app",
+    "type": "drupal-module",
+    "description": "Embeds CDS/ADS Applications",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/ecmwf-copernicus/copernicus_ds_app.git"
+        }
+    ],
+    "support": {
+        "source": "https://github.com/ecmwf-copernicus/copernicus_ds_app"
+    },
+    "authors": [
+        {
+            "name": "Daniel Tabirca",
+            "email": "daniel.tabirca@eaudeweb.ro"
+        }
+    ]
+}
