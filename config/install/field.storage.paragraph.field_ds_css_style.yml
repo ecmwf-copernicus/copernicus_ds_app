@@ -1,0 +1,19 @@
+uuid: f48e081d-a777-401c-b4df-14d27c84c4f3
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs
+id: paragraph.field_ds_css_style
+field_name: field_ds_css_style
+entity_type: paragraph
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

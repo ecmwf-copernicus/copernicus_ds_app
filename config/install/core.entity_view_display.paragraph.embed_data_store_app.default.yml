@@ -1,0 +1,47 @@
+uuid: 4f312004-205f-4dff-834b-b224578b1a4f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.embed_data_store_app.field_ds_app_link
+    - field.field.paragraph.embed_data_store_app.field_ds_app_slug
+    - field.field.paragraph.embed_data_store_app.field_ds_config_json
+    - field.field.paragraph.embed_data_store_app.field_ds_css_style
+    - paragraphs.paragraphs_type.embed_data_store_app
+id: paragraph.embed_data_store_app.default
+targetEntityType: paragraph
+bundle: embed_data_store_app
+mode: default
+content:
+  field_ds_app_link:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 1
+    region: content
+  field_ds_app_slug:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  field_ds_config_json:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
+    region: content
+  field_ds_css_style:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 3
+    region: content
+hidden:
+  search_api_excerpt: true

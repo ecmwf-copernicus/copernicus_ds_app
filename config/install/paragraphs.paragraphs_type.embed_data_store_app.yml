@@ -1,0 +1,10 @@
+uuid: c3b04c29-421c-4750-9c87-21e6f9389d8a
+langcode: en
+status: true
+dependencies: {  }
+id: embed_data_store_app
+label: 'Embed Data Store App'
+icon_uuid: null
+icon_default: null
+description: 'Embed CDS/ADS application'
+behavior_plugins: {  }

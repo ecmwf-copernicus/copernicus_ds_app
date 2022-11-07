@@ -1,0 +1,8 @@
+ds_app:
+  js:
+    js/ds_app.init.js: {}
+    https://cds.climate.copernicus.eu/toolbox/toolbox-4.35.4.js: { external: true }
+    js/ds_app.run.js: {}
+  css:
+    theme:
+      css/ds_app.css: {}

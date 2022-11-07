@@ -1,0 +1,19 @@
+uuid: 36191e6e-31fe-441f-b01c-3985fb93c7d5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_ds_css_style
+    - paragraphs.paragraphs_type.embed_data_store_app
+id: paragraph.embed_data_store_app.field_ds_css_style
+field_name: field_ds_css_style
+entity_type: paragraph
+bundle: embed_data_store_app
+label: 'CSS Style'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

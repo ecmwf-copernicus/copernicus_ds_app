@@ -1,0 +1,19 @@
+uuid: 33fe665f-a4f8-42a7-86e1-e82b4f30066e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_ds_app_link
+    - paragraphs.paragraphs_type.embed_data_store_app
+id: paragraph.embed_data_store_app.field_ds_app_link
+field_name: field_ds_app_link
+entity_type: paragraph
+bundle: embed_data_store_app
+label: 'App Configuration Link'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string
