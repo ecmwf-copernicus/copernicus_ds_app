@@ -6,3 +6,7 @@ ds_app:
   css:
     theme:
       css/ds_app.css: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once

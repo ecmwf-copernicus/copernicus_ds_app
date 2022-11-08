@@ -1,32 +1,23 @@
-(function () {
-    document.addEventListener(
-        'DOMContentLoaded',
-        function () {
-            try {
-                // window.cds_toolbox.runApp(
-                //     'app',
-                //     '/themes/custom/copernicus/assets/js/configuration.json',
-                //     { monitorViewport: true, standalone: true }
-                // );
-                window.cds_toolbox.runApp(
-                    'app2',
-                    '{"name": "application", "layout": {"rows": [{"type": "row", "content": [{"type": "col", "content": "", "markdown": "<div><h5 id=\"sea-level-rise-is-impacting-the-mediterranean-regions-cultural-heritage-many-unesco-world-heritage-sites-in-the-mediterranean-are-situated-on-the-coast-and-are-therefore-under-increasing-risk-from-coastal-flooding-from-sea-level-rise-and-extreme-storm-surge-events\">Sea level rise is impacting the Mediterranean region&#8217;s cultural heritage. Many UNESCO World Heritage Sites in the Mediterranean are situated on the coast and are therefore under increasing risk from coastal flooding from sea level rise and extreme storm surge events.</h5>\n<h5 id=\"this-application-demonstrates-how-climate-data-may-be-harnessed-to-explore-the-risk-from-coastal-flooding-to-a-number-of-world-heritage-sites-in-the-mediterranean-based-on-a-1-in-100-year-extreme-event-combined-with-sea-level-projections-for-the-year-2050\">This application demonstrates how climate data may be harnessed to explore the risk from coastal flooding to a number of world heritage sites in the Mediterranean, based on a 1 in 100 year extreme event combined with sea level projections for the year 2050.</h5>\n<p><strong>Click on a site to discover</strong> how the mean sea level has changed over the past 30 years, and how the severity of extreme events might change under climate change.</p></div>", "md": 8, "sm": 12}]}, {"type": "row", "content": [{"type": "col", "content": [{"type": "row", "scroll": false, "fullscreen": false, "fluid": true, "debug": false, "content": [{"type": "col", "content": [{"type": "row", "content": [{"type": "col", "content": "output-0", "markdown": null, "md": 8, "sm": 8}, {"type": "col", "content": "[child]", "markdown": null, "md": 4, "sm": 4}]}]}]}], "markdown": null}]}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<p>Developed in collaboration with the <a href=\"https://ufmsecretariat.org/\" rel=\"noreferrer noopener\">Union for the Mediterranean</a></p>"}]}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<p><img alt=\"UFM LOGO\" src=\"https://datastore.copernicus-climate.eu/data/images/ufm/UfM.png\" rel=\"noreferrer noopener\"></p>", "lg": 2, "md": 2, "sm": 2, "xs": 6}]}], "scroll": false, "fullscreen": false, "fluid": true, "debug": false}, "autorun": true, "subapp_position": null, "configuration_version": "2.0", "params": [], "widgets": [{"type": "map", "input_data": [{"interaction": "geojson_layer_click", "options": {"attributes": []}, "argument_name": "params", "configuration": {"name": "timeseries", "position": "bottom", "layout": {"rows": [{"type": "row", "content": [{"type": "col", "content": [{"type": "row", "scroll": false, "fullscreen": false, "fluid": true, "debug": false, "content": [{"type": "col", "content": [{"type": "row", "content": [], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "output-1", "markdown": null, "sm": 5, "xs": 12}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "output-0", "markdown": null}], "justify": "center"}]}]}], "markdown": null}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<h4 id=\"sea-level-during-a-1-in-100-year-extreme-event\">Sea level during a 1 in 100-year extreme event</h4>"}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "output-3", "markdown": null}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<p><strong>Current climate</strong> derived from ERA5 reanalysis <br> <strong>Future estimations</strong> derived from CMIP6 ensemble climate projections (SSP5-8.5)</p>"}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<h4 id=\"observed-sea-level-change-from-satellites-for-1993-present\">Observed sea level change from satellites for 1993-present</h4>"}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "output-2", "markdown": null}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<p>Sea surface height above the mean sea level relative to the reference period 1993-2012</p>"}], "justify": "center"}, {"type": "row", "content": [{"type": "col", "content": "", "markdown": "<p>Note: sea level values above are taken from the closest ocean data point to the selected world heritage site</p>"}], "justify": "center"}], "scroll": false, "fullscreen": false, "fluid": true, "debug": false}, "autorun": true, "subapp_position": "bottom", "configuration_version": "2.0", "params": [], "widgets": [{"type": "markdown", "input_data": null, "props": {"when": "output-0"}, "uid": "cfffd6ec-4187-498e-a063-fc148fe09085"}, {"type": "markdown", "input_data": null, "props": {"when": "output-1"}, "uid": "e496f130-6529-45cb-83f8-ce9449346a79"}, {"type": "graph", "input_data": null, "props": {"when": "output-2"}, "uid": "844f0d5c-c298-4ec0-8122-7589ae524963"}, {"type": "graph", "input_data": null, "props": {"when": "output-3"}, "uid": "ac2029ef-17dc-4173-997e-8dfebad1d3cb"}], "sdk_version": "", "workflow_entry_point": "timeseries"}, "uid": "83ab5b56-37fa-44a1-af7f-9366c4bee19c"}], "props": {"min_height": 60, "when": "output-0"}, "uid": "24c4fb2f-dd1c-4619-8b5d-52ac3ea975cf"}], "sdk_version": "", "workflow_entry_point": "application", "workflow_url": "https://cds.climate.copernicus.eu/workflows/c3s/app-climate-mediterranean-sea-level/03ee678f946b62d94a4703544f57572ff71bc15b"}',
-                    {
-                        monitorViewport: true,
-                        standalone: true,
-                        workflowBase: 'https://cds.climate.copernicus.eu/',
-                        inlineJSON: true
-                    }
-                );
-                // window.cds_toolbox.runApp(
-                //     'app3',
-                //     '/themes/custom/copernicus/assets/js/configuration3.json',
-                //     { monitorViewport: true, standalone: true, workflowBase: 'https://cds.climate.copernicus.eu/'}
-                // );
-            } catch (err) {
-                console.error(err);
+(function ($, Drupal, once) {
+  Drupal.behaviors.dsApp = {
+    attach: function attach(context, settings) {
+      var $context = $(context);
+      for (let i = 0; i < settings.ds_app_paragraphs.length; ++i) {
+        try {
+          window.cds_toolbox.runApp(
+            'ds-app-' + settings.ds_app_paragraphs[i],
+            // TODO: get Drupal's public folder here
+            '/sites/default/files/ds_app/' + settings.ds_app_paragraphs[i] + '/configuration.json',
+            {
+              monitorViewport: true,
+              standalone: true,
+              workflowBase: 'https://cds.climate.copernicus.eu/'
             }
-        },
-        false
-    );
-})();
+          );
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+  };
+})(jQuery, Drupal, once);
