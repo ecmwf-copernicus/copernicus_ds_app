@@ -65,6 +65,28 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
   $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
   $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
 
+  // TODO: generic solution for nested paragraphs containing ds app
+  if (
+    isset($element['#parents'][3]) &&
+    $element['#parents'][3] == 'field_column_1'
+  ) {
+    $nested_parent_delta = $element['#parents'][4];
+    $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+    $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
+    $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+    $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
+  }
+  if (
+    isset($element['#parents'][3]) &&
+    $element['#parents'][3] == 'field_column_2'
+  ) {
+    $nested_parent_delta = $element['#parents'][4];
+    $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+    $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
+    $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+    $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
+  }
+
   $response = new AjaxResponse();
   $response->addCommand(new InvokeCommand(
     'input[name="' . $link_input_name . '"]',
@@ -125,6 +147,40 @@ function copernicus_ds_app_node_presave(NodeInterface $node) {
             $paragraph->field_ds_css_style->value
           );
         }
+
+      // TODO: rewrite this for nested paragraphs
+      // hardcoded for two_column_layout
+        if ($paragraph->bundle() == 'two_column_layout') {
+          $column_elements = array_merge(
+            $paragraph->get('field_column_1')->getValue(),
+            $paragraph->get('field_column_2')->getValue()
+          );
+          foreach($column_elements as $item){
+            $target_id = $item['target_id'];
+            $nested_paragraph = Paragraph::load($target_id);
+            if ($nested_paragraph->hasField('field_ds_config_json')) {
+              $json_string = $nested_paragraph->field_ds_config_json->value;
+              $paragraph_ds_app_dir = $ds_app_dir . '/' . $nested_paragraph->uuid();
+              if (
+                $file_system->prepareDirectory(
+                  $paragraph_ds_app_dir,
+                  FileSystemInterface:: CREATE_DIRECTORY
+                )
+              ) {
+                /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
+                $fileRepository = \Drupal::service('file.repository');
+                $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
+              }
+            }
+            if ($nested_paragraph->hasField('field_ds_css_style')) {
+              // TODO: looks like this is already filtered
+              $nested_paragraph->field_ds_css_style = Xss::filter(
+                $nested_paragraph->field_ds_css_style->value
+              );
+            }
+          }
+        }
+
       }
     }
   }
@@ -151,6 +207,35 @@ function copernicus_ds_app_preprocess_node(&$variables) {
           $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
         }
         $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] = $variables['elements']['field_content'][$key]['#paragraph']->uuid();
+      }
+
+      // TODO: rewrite this for nested paragraphs
+      // hardcoded for two_column_layout
+      if (
+        is_numeric($key) &&
+        isset($variables['elements']['field_content'][$key]['#paragraph'])
+        &&
+        $variables['elements']['field_content'][$key]['#paragraph']->bundle() == 'two_column_layout'
+      ) {
+        if ($column_elements =
+          array_merge(
+            $variables['elements']['field_content'][$key]['#paragraph']->get('field_column_1')->getValue(),
+            $variables['elements']['field_content'][$key]['#paragraph']->get('field_column_2')->getValue()
+          )
+        ) {
+          foreach($column_elements as $item){
+            $target_id = $item['target_id'];
+            $nested_paragraph = Paragraph::load($target_id);
+            if ($nested_paragraph->bundle() == 'embed_data_store_app') {
+              if (!$load_ds_toolkit) {
+                $load_ds_toolkit = TRUE;
+                $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
+              }
+              $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
+                $nested_paragraph->uuid();
+            }
+          }
+        }
       }
     }
   }
