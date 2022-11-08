@@ -6,8 +6,7 @@
         try {
           window.cds_toolbox.runApp(
             'ds-app-' + settings.ds_app_paragraphs[i],
-            // TODO: get Drupal's public folder here
-            '/sites/default/files/ds_app/' + settings.ds_app_paragraphs[i] + '/configuration.json',
+            settings.ds_app_public_dir + '/' + settings.ds_app_paragraphs[i] + '/configuration.json',
             {
               monitorViewport: true,
               standalone: true,

@@ -54,7 +54,7 @@ function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
  */
 function _copernicus_ds_app_ajax(&$form, &$form_state) {
 
-  // TODO: move this in module settings
+  // TODO: move this in module settings?
   $data_store_base_url = 'https://cds.climate.copernicus.eu/workflows/c3s/';
 
   $element = $form_state->getTriggeringElement();
@@ -139,6 +139,9 @@ function copernicus_ds_app_node_presave(NodeInterface $node) {
             /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
             $fileRepository = \Drupal::service('file.repository');
             $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
+            \Drupal::logger('copernicus_ds_app')->notice(
+              'create/replace ' . $paragraph_ds_app_dir . '/' . 'configuration.json'
+            );
           }
         }
         if ($paragraph->hasField('field_ds_css_style')) {
@@ -170,6 +173,9 @@ function copernicus_ds_app_node_presave(NodeInterface $node) {
                 /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
                 $fileRepository = \Drupal::service('file.repository');
                 $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
+                \Drupal::logger('copernicus_ds_app')->notice(
+                  'create/replace ' . $paragraph_ds_app_dir . '/' . 'configuration.json'
+                );
               }
             }
             if ($nested_paragraph->hasField('field_ds_css_style')) {
@@ -205,6 +211,9 @@ function copernicus_ds_app_preprocess_node(&$variables) {
         if (!$load_ds_toolkit) {
           $load_ds_toolkit = TRUE;
           $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
+          $variables['#attached']['drupalSettings']['ds_app_public_dir'] =
+            \Drupal::service('file_url_generator')
+              ->generate('public://ds_app')->toString();
         }
         $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] = $variables['elements']['field_content'][$key]['#paragraph']->uuid();
       }
@@ -230,6 +239,9 @@ function copernicus_ds_app_preprocess_node(&$variables) {
               if (!$load_ds_toolkit) {
                 $load_ds_toolkit = TRUE;
                 $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
+                $variables['#attached']['drupalSettings']['ds_app_public_dir'] =
+                  \Drupal::service('file_url_generator')
+                    ->generate('public://ds_app')->toString();
               }
               $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
                 $nested_paragraph->uuid();
@@ -242,3 +254,43 @@ function copernicus_ds_app_preprocess_node(&$variables) {
 }
 
 //TODO: delete configuration files when paragraph is deleted
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ */
+function copernicus_ds_app_node_update(NodeInterface $node) {
+  // TODO: scan all fields for containing paragraphs
+  if (!$node->get('field_content')->isEmpty()) {
+    // new content
+    $new_ds_app_paragraphs = [];
+    foreach ($node->get('field_content')->getValue() as $content) {
+      if ($content['target_id']) {
+        $paragraph = Paragraph::load($content['target_id']);
+        if ($paragraph->hasField('field_ds_config_json')) {
+          $new_ds_app_paragraphs[] = $paragraph->uuid();
+        }
+      }
+    }
+    // old content
+    $old_ds_app_paragraphs = [];
+    foreach ($node->original->get('field_content')->getValue() as $content) {
+      if ($content['target_id']) {
+        $paragraph = Paragraph::load($content['target_id']);
+        if ($paragraph->hasField('field_ds_config_json')) {
+          $old_ds_app_paragraphs[] = $paragraph->uuid();
+        }
+      }
+    }
+    // compare IDs
+    $diff = array_diff($old_ds_app_paragraphs, $new_ds_app_paragraphs);
+    if (!empty($diff)) {
+      $file_system = \Drupal::service('file_system');
+      foreach ($diff as $uuid) {
+        \Drupal::logger('copernicus_ds_app')->notice(
+          'delete public://ds_app/' . $uuid
+        );
+        $file_system->deleteRecursive('public://ds_app/' . $uuid);
+      }
+    }
+  }
+  // TODO: treat nested paragraphs case
+}
