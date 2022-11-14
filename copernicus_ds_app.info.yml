@@ -1,5 +1,5 @@
 name: Copernicus Embed Data Store App
-description: Embeds a CDS/ADS Application
+description: Embeds a CDS/ADS Application - https://cds.climate.copernicus.eu/
 package: Custom
 
 type: module

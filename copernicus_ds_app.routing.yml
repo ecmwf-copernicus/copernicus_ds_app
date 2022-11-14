@@ -1,0 +1,7 @@
+copernicus_ds_app.ds_app:
+  path: '/ds-app/{uuid}/configuration.json'
+  defaults:
+    _controller: '\Drupal\copernicus_ds_app\Controller\DSAppController::getConfigurationJSON'
+    _title: 'Get Configuration JSON'
+  requirements:
+    _permission: 'access content'

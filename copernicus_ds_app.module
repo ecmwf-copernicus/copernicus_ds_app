@@ -5,9 +5,9 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\DataCommand;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\node\NodeInterface;
-use Drupal\Core\File\FileSystemInterface;
 use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\Component\Utility\Xss;
+use Drupal\Core\Site\Settings;
 
 /**
  * Implements hook_theme().
@@ -33,7 +33,6 @@ function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#size'] = 80;
     $element['subform']['field_ds_app_slug']['widget'][0]['value']['#size'] = 80;
-    //$element['subform']['field_ds_app_slug']['widget'][0]['value']['#default_value'] = '';
     $element['subform']['field_ds_app_slug']['widget'][0]['value']['#ajax'] = [
       'callback' => '_copernicus_ds_app_ajax',
       'event' => 'change',
@@ -50,19 +49,18 @@ function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
 }
 
 /**
- *
+ * ajax callback
  */
 function _copernicus_ds_app_ajax(&$form, &$form_state) {
 
-  // TODO: move this in module settings?
-  $data_store_base_url = 'https://cds.climate.copernicus.eu/workflows/c3s/';
+  $workflow_url = Settings::get('cds_app_base_url', 'https://cds.climate.copernicus.eu') . Settings::get('cds_app_workflow_path', '/workflows/c3s/');
 
   $element = $form_state->getTriggeringElement();
   $parent_elm = $element['#parents'][0];
   $parent_delta = $element['#parents'][1];
   $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
   $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-  $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+  $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
   $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
 
   // TODO: generic solution for nested paragraphs containing ds app
@@ -73,7 +71,7 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
     $nested_parent_delta = $element['#parents'][4];
     $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
     $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-    $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+    $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
     $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
   }
   if (
@@ -83,7 +81,7 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
     $nested_parent_delta = $element['#parents'][4];
     $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
     $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-    $link_input_value = $data_store_base_url . $slug_input_value . '/master/configuration.json';
+    $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
     $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
   }
 
@@ -107,190 +105,73 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
   return $response;
 }
 
-/**
- * Implements hook_node_presave().
- */
-function copernicus_ds_app_node_presave(NodeInterface $node) {
-
-  // TODO: make this more generic by targeting any field that contains ds app paragraphs
-  if (!$node->get('field_content')->isEmpty()) {
-
-    $module_path = \Drupal::service('extension.list.module')
-      ->getPath('copernicus_ds_app');
-    $file_system = \Drupal::service('file_system');
-    $ds_app_dir = 'public://ds_app';
-    $file_system->prepareDirectory(
-      $ds_app_dir,
-      FileSystemInterface:: CREATE_DIRECTORY
-    );
-
-    foreach ($node->get('field_content')->getValue() as $content) {
-      if ($content['target_id']) {
-        $paragraph = Paragraph::load($content['target_id']);
-        if ($paragraph->hasField('field_ds_config_json')) {
-          $json_string = $paragraph->field_ds_config_json->value;
-          $paragraph_ds_app_dir = $ds_app_dir . '/' . $paragraph->uuid();
-          if (
-            $file_system->prepareDirectory(
-              $paragraph_ds_app_dir,
-              FileSystemInterface:: CREATE_DIRECTORY
-            )
-          ) {
-            /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
-            $fileRepository = \Drupal::service('file.repository');
-            $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
-            \Drupal::logger('copernicus_ds_app')->notice(
-              'create/replace ' . $paragraph_ds_app_dir . '/' . 'configuration.json'
-            );
-          }
-        }
-        if ($paragraph->hasField('field_ds_css_style')) {
-          // TODO: looks like this is already filtered
-          $paragraph->field_ds_css_style = Xss::filter(
-            $paragraph->field_ds_css_style->value
-          );
-        }
-
-      // TODO: rewrite this for nested paragraphs
-      // hardcoded for two_column_layout
-        if ($paragraph->bundle() == 'two_column_layout') {
-          $column_elements = array_merge(
-            $paragraph->get('field_column_1')->getValue(),
-            $paragraph->get('field_column_2')->getValue()
-          );
-          foreach($column_elements as $item){
-            $target_id = $item['target_id'];
-            $nested_paragraph = Paragraph::load($target_id);
-            if ($nested_paragraph->hasField('field_ds_config_json')) {
-              $json_string = $nested_paragraph->field_ds_config_json->value;
-              $paragraph_ds_app_dir = $ds_app_dir . '/' . $nested_paragraph->uuid();
-              if (
-                $file_system->prepareDirectory(
-                  $paragraph_ds_app_dir,
-                  FileSystemInterface:: CREATE_DIRECTORY
-                )
-              ) {
-                /** @var \Drupal\file\FileRepositoryInterface $fileRepository */
-                $fileRepository = \Drupal::service('file.repository');
-                $fileRepository->writeData($json_string, $paragraph_ds_app_dir . '/' . 'configuration.json', FileSystemInterface::EXISTS_REPLACE);
-                \Drupal::logger('copernicus_ds_app')->notice(
-                  'create/replace ' . $paragraph_ds_app_dir . '/' . 'configuration.json'
-                );
-              }
-            }
-            if ($nested_paragraph->hasField('field_ds_css_style')) {
-              // TODO: looks like this is already filtered
-              $nested_paragraph->field_ds_css_style = Xss::filter(
-                $nested_paragraph->field_ds_css_style->value
-              );
-            }
-          }
-        }
-
-      }
-    }
-  }
-}
+// Note: this only works for first paragraph (load behavior once)
+// /**
+//  * Implements hook_preprocess_paragraph().
+//  */
+// function copernicus_ds_app_preprocess_paragraph(&$variables) {
+//   $paragraph = $variables['elements']['#paragraph'];
+//   if (isset($variables['elements']['field_ds_config_json'])) {
+//     $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
+//     $variables['#attached']['drupalSettings']['cds_app_base_url'] = Settings::get('data_store_base_url', 'https://cds.climate.copernicus.eu');
+//     $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] = $paragraph->uuid();
+//    }
+// }
 
 /**
  * Implements hook_preprocess_node().
  */
 function copernicus_ds_app_preprocess_node(&$variables) {
   $node = $variables['elements']['#node'];
-  $view_mode = $variables['elements']['#view_mode'];
   $load_ds_toolkit = FALSE;
 
-  // TODO: make this more generic by targeting any field that contains ds app paragraphs
-  if (isset($variables['elements']['field_content'])) {
-    foreach($variables['elements']['field_content'] as $key => $item) {
-      if (
-        is_numeric($key) &&
-        isset($variables['elements']['field_content'][$key]['#paragraph']) &&
-        $variables['elements']['field_content'][$key]['#paragraph']->bundle() == 'embed_data_store_app'
-      ) {
-        if (!$load_ds_toolkit) {
-          $load_ds_toolkit = TRUE;
-          $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
-          $variables['#attached']['drupalSettings']['ds_app_public_dir'] =
-            \Drupal::service('file_url_generator')
-              ->generate('public://ds_app')->toString();
-        }
-        $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] = $variables['elements']['field_content'][$key]['#paragraph']->uuid();
-      }
-
-      // TODO: rewrite this for nested paragraphs
-      // hardcoded for two_column_layout
-      if (
-        is_numeric($key) &&
-        isset($variables['elements']['field_content'][$key]['#paragraph'])
-        &&
-        $variables['elements']['field_content'][$key]['#paragraph']->bundle() == 'two_column_layout'
-      ) {
-        if ($column_elements =
-          array_merge(
-            $variables['elements']['field_content'][$key]['#paragraph']->get('field_column_1')->getValue(),
-            $variables['elements']['field_content'][$key]['#paragraph']->get('field_column_2')->getValue()
-          )
+  foreach($variables['elements'] as $elm){
+    if (
+      is_array($elm) &&
+      isset($elm['#field_type']) &&
+      $elm['#field_type'] == 'entity_reference_revisions'
+    ) {
+      foreach($elm as $key => $item) {
+        // embed ds paragraph into content field
+        if (
+          is_numeric($key) &&
+          isset($elm[$key]['#paragraph']) &&
+          $elm[$key]['#paragraph']->bundle() == 'embed_data_store_app'
         ) {
-          foreach($column_elements as $item){
-            $target_id = $item['target_id'];
-            $nested_paragraph = Paragraph::load($target_id);
-            if ($nested_paragraph->bundle() == 'embed_data_store_app') {
-              if (!$load_ds_toolkit) {
+          $load_ds_toolkit = TRUE;
+          $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
+            $elm[$key]['#paragraph']->uuid();
+        }
+        // embed ds paragraph into two_column_layout paragraph (hardcoded)
+        if (
+          is_numeric($key) &&
+          isset($elm[$key]['#paragraph']) &&
+          $elm[$key]['#paragraph']->bundle() == 'two_column_layout'
+        ) {
+          if ($column_elements =
+            array_merge(
+              $elm[$key]['#paragraph']->get('field_column_1')->getValue(),
+              $elm[$key]['#paragraph']->get('field_column_2')->getValue()
+            )
+          ) {
+            foreach($column_elements as $item){
+              $target_id = $item['target_id'];
+              $nested_paragraph = Paragraph::load($target_id);
+              if ($nested_paragraph->bundle() == 'embed_data_store_app') {
                 $load_ds_toolkit = TRUE;
-                $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
-                $variables['#attached']['drupalSettings']['ds_app_public_dir'] =
-                  \Drupal::service('file_url_generator')
-                    ->generate('public://ds_app')->toString();
+                $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
+                  $nested_paragraph->uuid();
               }
-              $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
-                $nested_paragraph->uuid();
             }
           }
         }
       }
     }
   }
-}
 
-//TODO: delete configuration files when paragraph is deleted
-/**
- * Implements hook_ENTITY_TYPE_update() for node entities.
- */
-function copernicus_ds_app_node_update(NodeInterface $node) {
-  // TODO: scan all fields for containing paragraphs
-  if (!$node->get('field_content')->isEmpty()) {
-    // new content
-    $new_ds_app_paragraphs = [];
-    foreach ($node->get('field_content')->getValue() as $content) {
-      if ($content['target_id']) {
-        $paragraph = Paragraph::load($content['target_id']);
-        if ($paragraph->hasField('field_ds_config_json')) {
-          $new_ds_app_paragraphs[] = $paragraph->uuid();
-        }
-      }
-    }
-    // old content
-    $old_ds_app_paragraphs = [];
-    foreach ($node->original->get('field_content')->getValue() as $content) {
-      if ($content['target_id']) {
-        $paragraph = Paragraph::load($content['target_id']);
-        if ($paragraph->hasField('field_ds_config_json')) {
-          $old_ds_app_paragraphs[] = $paragraph->uuid();
-        }
-      }
-    }
-    // compare IDs
-    $diff = array_diff($old_ds_app_paragraphs, $new_ds_app_paragraphs);
-    if (!empty($diff)) {
-      $file_system = \Drupal::service('file_system');
-      foreach ($diff as $uuid) {
-        \Drupal::logger('copernicus_ds_app')->notice(
-          'delete public://ds_app/' . $uuid
-        );
-        $file_system->deleteRecursive('public://ds_app/' . $uuid);
-      }
-    }
+  if ($load_ds_toolkit) {
+    $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
+    $variables['#attached']['drupalSettings']['cds_app_base_url'] =
+      Settings::get('data_store_base_url', 'https://cds.climate.copernicus.eu');
   }
-  // TODO: treat nested paragraphs case
 }

@@ -6,11 +6,11 @@
         try {
           window.cds_toolbox.runApp(
             'ds-app-' + settings.ds_app_paragraphs[i],
-            settings.ds_app_public_dir + '/' + settings.ds_app_paragraphs[i] + '/configuration.json',
+            'ds-app/' + settings.ds_app_paragraphs[i] + '/configuration.json',
             {
               monitorViewport: false,
               standalone: false,
-              workflowBase: 'https://cds.climate.copernicus.eu/'
+              workflowBase: settings.cds_app_base_url
             }
           );
         } catch (err) {
