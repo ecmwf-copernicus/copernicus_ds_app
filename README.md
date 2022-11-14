@@ -13,5 +13,5 @@ Embed a CDS/ADS Application into Drupal content using paragraphs.
 
 ### Overwrite settings
 
-$settings['cds_app_base_url'] = 'https://cds.climate.copernicus.eu';
+$settings['cds_app_base_url'] = 'https://cds.climate.copernicus.eu';  
 $settings['cds_app_workflow_path'] = '/workflows/c3s/';
