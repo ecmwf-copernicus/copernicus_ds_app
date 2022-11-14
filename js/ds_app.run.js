@@ -8,8 +8,8 @@
             'ds-app-' + settings.ds_app_paragraphs[i],
             settings.ds_app_public_dir + '/' + settings.ds_app_paragraphs[i] + '/configuration.json',
             {
-              monitorViewport: true,
-              standalone: true,
+              monitorViewport: false,
+              standalone: false,
               workflowBase: 'https://cds.climate.copernicus.eu/'
             }
           );
