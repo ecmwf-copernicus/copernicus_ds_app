@@ -3,7 +3,7 @@ langcode: en
 status: true
 dependencies: {  }
 id: embed_data_store_app
-label: 'Embed Data Store App'
+label: 'CDS Application'
 icon_uuid: null
 icon_default: null
 description: 'Embed CDS/ADS application'
