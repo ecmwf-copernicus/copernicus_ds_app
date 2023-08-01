@@ -22,12 +22,37 @@ function copernicus_ds_app_theme() {
 }
 
 /**
- * Implements hook_field_widget_WIDGET_TYPE_form_alter().
+ * hook_field_widget_single_element_WIDGET_TYPE_form_alter
  */
-function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
+function copernicus_ds_app_field_widget_single_element_paragraphs_form_alter(
   &$element, &$form_state, $context
 ) {
+  if ($element['#paragraph_type'] == 'embed_data_store_app') {
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#size'] = 80;
+    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#size'] = 80;
+    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#ajax'] = [
+      'callback' => '_copernicus_ds_app_ajax',
+      'event' => 'change',
+      'method' => 'replace',
+      'wrapper' => 'my-wrapper',
+      'progress' => [
+        'type' => 'throbber',
+        'message' => new TranslatableMarkup('Updating configuration ...'),
+      ],
+    ];
 
+    $element['subform']['field_ds_config_json']['widget'][0]['value']['#rows'] = 10;
+  }
+}
+
+/**
+ * Implements hook_field_widget_single_element_WIDGET_TYPE_form_alter().
+ */
+function copernicus_ds_app_field_widget_single_element_entity_reference_paragraphs_form_alter(
+  &$element, &$form_state, $context
+) {
   if ($element['#paragraph_type'] == 'embed_data_store_app') {
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
@@ -52,7 +77,6 @@ function copernicus_ds_app_field_widget_entity_reference_paragraphs_form_alter(
  * ajax callback
  */
 function _copernicus_ds_app_ajax(&$form, &$form_state) {
-
   $workflow_url = Settings::get('cds_app_base_url', 'https://cds.climate.copernicus.eu') . Settings::get('cds_app_workflow_path', '/workflows/c3s/');
 
   $element = $form_state->getTriggeringElement();
