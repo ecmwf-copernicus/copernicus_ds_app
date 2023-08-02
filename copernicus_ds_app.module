@@ -196,6 +196,6 @@ function copernicus_ds_app_preprocess_node(&$variables) {
   if ($load_ds_toolkit) {
     $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
     $variables['#attached']['drupalSettings']['cds_app_base_url'] =
-      Settings::get('data_store_base_url', 'https://cds.climate.copernicus.eu');
+      Settings::get('cds_app_base_url', 'https://cds.climate.copernicus.eu');
   }
 }
