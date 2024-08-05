@@ -23,7 +23,7 @@
             });
         }, {
             root: null,
-            rootMargin: '0px',
+            rootMargin: '200px',
             threshold: 0
         });
         observer.observe(appContainer);     
