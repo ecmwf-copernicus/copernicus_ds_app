@@ -181,7 +181,7 @@ function copernicus_ds_app_preprocess_node(&$variables) {
             foreach($column_elements as $item){
               $target_id = $item['target_id'];
               $nested_paragraph = Paragraph::load($target_id);
-              if ($nested_paragraph->bundle() == 'embed_data_store_app') {
+              if ($nested_paragraph && $nested_paragraph->bundle() == 'embed_data_store_app') {
                 $load_ds_toolkit = TRUE;
                 $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
                   $nested_paragraph->uuid();
