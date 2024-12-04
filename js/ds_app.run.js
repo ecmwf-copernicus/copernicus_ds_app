@@ -9,15 +9,9 @@
           const observer = new IntersectionObserver(function(entries, observer) {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                  window.cds_toolbox.runApp(
-                    'ds-app-' + settings.ds_app_paragraphs[i],
-                    'ds-app/' + settings.ds_app_paragraphs[i] + '/configuration.json',
-                    {
-                      monitorViewport: false,
-                      standalone: false,
-                      workflowBase: settings.cds_app_base_url
-                    }
-                  );
+                  settings.plotly_json = JSON.parse(settings.plotly_json);
+                  console.log( settings.plotly_json)
+                  Plotly.newPlot(`ds-app-${ settings.ds_app_paragraphs[i] }`, settings.plotly_json.data, settings.plotly_json.layout);
                     observer.disconnect();
                 }
             });

@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - field.field.paragraph.embed_data_store_app.field_ds_app_link
-    - field.field.paragraph.embed_data_store_app.field_ds_app_slug
     - field.field.paragraph.embed_data_store_app.field_ds_config_json
     - field.field.paragraph.embed_data_store_app.field_ds_css_style
     - paragraphs.paragraphs_type.embed_data_store_app
@@ -16,14 +15,6 @@ content:
   field_ds_app_link:
     type: string_textfield
     weight: 1
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_ds_app_slug:
-    type: string_textfield
-    weight: 0
     region: content
     settings:
       size: 60

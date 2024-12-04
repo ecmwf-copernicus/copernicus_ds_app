@@ -28,11 +28,9 @@ function copernicus_ds_app_field_widget_single_element_paragraphs_form_alter(
   &$element, &$form_state, $context
 ) {
   if ($element['#paragraph_type'] == 'embed_data_store_app') {
-    $element['subform']['field_ds_app_link']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#size'] = 80;
-    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#size'] = 80;
-    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#ajax'] = [
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#ajax'] = [
       'callback' => '_copernicus_ds_app_ajax',
       'event' => 'change',
       'method' => 'replace',
@@ -57,8 +55,7 @@ function copernicus_ds_app_field_widget_single_element_entity_reference_paragrap
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#required'] = FALSE;
     $element['subform']['field_ds_app_link']['widget'][0]['value']['#size'] = 80;
-    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#size'] = 80;
-    $element['subform']['field_ds_app_slug']['widget'][0]['value']['#ajax'] = [
+    $element['subform']['field_ds_app_link']['widget'][0]['value']['#ajax'] = [
       'callback' => '_copernicus_ds_app_ajax',
       'event' => 'change',
       'method' => 'replace',
@@ -77,14 +74,11 @@ function copernicus_ds_app_field_widget_single_element_entity_reference_paragrap
  * ajax callback
  */
 function _copernicus_ds_app_ajax(&$form, &$form_state) {
-  $workflow_url = Settings::get('cds_app_base_url', 'https://cds.climate.copernicus.eu') . Settings::get('cds_app_workflow_path', '/workflows/c3s/');
-
   $element = $form_state->getTriggeringElement();
   $parent_elm = $element['#parents'][0];
   $parent_delta = $element['#parents'][1];
-  $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+  $link_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#value'];
   $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-  $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
   $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
 
   // TODO: generic solution for nested paragraphs containing ds app
@@ -93,9 +87,8 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
     $element['#parents'][3] == 'field_column_1'
   ) {
     $nested_parent_delta = $element['#parents'][4];
-    $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+    $link_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#value'];
     $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-    $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
     $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_1']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
   }
   if (
@@ -103,9 +96,8 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
     $element['#parents'][3] == 'field_column_2'
   ) {
     $nested_parent_delta = $element['#parents'][4];
-    $slug_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_slug']['widget'][0]['value']['#value'];
+    $link_input_value = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#value'];
     $link_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_app_link']['widget'][0]['value']['#name'];
-    $link_input_value = $workflow_url . $slug_input_value . '/master/configuration.json';
     $json_input_name = $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#name'];
   }
 
@@ -163,6 +155,7 @@ function copernicus_ds_app_preprocess_node(&$variables) {
           $elm[$key]['#paragraph']->bundle() == 'embed_data_store_app'
         ) {
           $load_ds_toolkit = TRUE;
+          $variables['#attached']['drupalSettings']['plotly_json'] = $elm[$key]['#paragraph']->get('field_ds_config_json')->value;
           $variables['#attached']['drupalSettings']['ds_app_paragraphs'][] =
             $elm[$key]['#paragraph']->uuid();
         }
@@ -195,7 +188,5 @@ function copernicus_ds_app_preprocess_node(&$variables) {
 
   if ($load_ds_toolkit) {
     $variables['#attached']['library'][] = 'copernicus_ds_app/ds_app';
-    $variables['#attached']['drupalSettings']['cds_app_base_url'] =
-      Settings::get('cds_app_base_url', 'https://cds.climate.copernicus.eu');
   }
 }
