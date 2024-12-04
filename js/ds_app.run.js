@@ -10,9 +10,8 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                   settings.plotly_json = JSON.parse(settings.plotly_json);
-                  console.log( settings.plotly_json)
                   Plotly.newPlot(`ds-app-${ settings.ds_app_paragraphs[i] }`, settings.plotly_json.data, settings.plotly_json.layout);
-                    observer.disconnect();
+                  observer.disconnect();
                 }
             });
         }, {
