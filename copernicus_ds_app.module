@@ -40,9 +40,9 @@ function copernicus_ds_app_field_widget_single_element_paragraphs_form_alter(
         'message' => new TranslatableMarkup('Updating configuration ...'),
       ],
     ];
-
     $element['subform']['field_ds_config_json']['widget'][0]['value']['#rows'] = 10;
-  }
+    $element['subform']['field_ds_config_json']['widget'][0]['value']['#disabled'] = TRUE;
+   }
 }
 
 /**
