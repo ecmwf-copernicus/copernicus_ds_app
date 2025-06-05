@@ -40,9 +40,9 @@ function copernicus_ds_app_field_widget_single_element_paragraphs_form_alter(
         'message' => new TranslatableMarkup('Updating configuration ...'),
       ],
     ];
-
     $element['subform']['field_ds_config_json']['widget'][0]['value']['#rows'] = 10;
-  }
+    $element['subform']['field_ds_config_json']['widget'][0]['value']['#disabled'] = TRUE;
+   }
 }
 
 /**
@@ -102,7 +102,6 @@ function _copernicus_ds_app_ajax(&$form, &$form_state) {
   }
 
   $response = new AjaxResponse();
-  $form[$parent_elm]['widget'][$parent_delta]['subform']['field_column_2']['widget'][$nested_parent_delta]['subform']['field_ds_config_json']['widget'][0]['value']['#value'] = "fdsfsdfsdfsdfsd";
 
   try {
     $http_response = \Drupal::httpClient()->get($link_input_value);
@@ -216,26 +215,32 @@ function copernicus_ds_app_cron() {
     if (!$paragraph) {
       continue;
     }
-
-    if (!$paragraph->hasField('field_ds_app_link') || $paragraph->get('field_ds_app_link')->isEmpty()) {
+    $field_content = $paragraph->getParentEntity()->get('field_content')->getValue();
+    $field_content_ids = array_column($field_content, 'target_id');
+    // Check that the paragraph exists on the latest node revision.
+    if (!in_array($pId, $field_content_ids, TRUE)) {
       continue;
     }
-    $url = $paragraph->get('field_ds_app_link')->uri ?? $paragraph->get('field_ds_app_link')->value;
-    if (empty($url)) {
+    if ($paragraph->get('field_ds_app_link')->isEmpty()) {
       continue;
     }
+    $url = $paragraph->get('field_ds_app_link')->getValue();
+    if (!isset(reset($url)['value']) || empty(reset($url)['value'])) {
+      continue;
+    }
+    $url = reset($url)['value'];
 
     try {
-      $response = $http_client->get($url);
+      $response = $http_client->get($url, ['verify' => FALSE]);
       $json_string = $response->getBody()->getContents();
     }
     catch (RequestException $e) {
+      \Drupal::logger("Copernicus_ds_app")->error("Error on node {$paragraph->getParentEntity()->id()}");
+      \Drupal::logger("Copernicus_ds_app")->error($e);
       continue;
     }
-
-    if ($paragraph->hasField('field_ds_config_json')) {
-      $paragraph->set('field_ds_config_json', $json_string);
-      $paragraph->save();
-    }
+    \Drupal::logger("Copernicus_ds_app")->notice("field_ds_config_json set on node {$paragraph->getParentEntity()->id()}");
+    $paragraph->set('field_ds_config_json', $json_string);
+    $paragraph->save();
   }
 }
