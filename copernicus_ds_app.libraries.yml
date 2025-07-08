@@ -1,6 +1,6 @@
 ds_app:
   js:
-    https://cdn.plot.ly/plotly-latest.min.js: { type: external }
+    https://cdn.plot.ly/plotly-3.0.1.min.js: { type: external }
     js/ds_app.run.js: {}
   css:
     theme:
